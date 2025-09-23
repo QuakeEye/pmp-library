@@ -139,29 +139,36 @@ void read_obj(SurfaceMesh& mesh, const std::filesystem::path& file)
                 }
             }
 
-            Face f;
-            try
-            {
-                f = mesh.add_face(vertices);
-            }
-            catch (const TopologyException& e)
-            {
-                std::cerr << e.what();
-            }
-
-            // add texture coordinates
-            if (with_tex_coord && f.is_valid())
-            {
-                auto h_fit = mesh.halfedges(f);
-                auto h_end = h_fit;
-                unsigned v_idx = 0;
-                do
+            if (!(vertices[0] == vertices[1] || vertices[1] == vertices[2] || vertices[0] == vertices[2])) {
+                Face f;
+                try
                 {
-                    tex_coords[*h_fit] =
-                        all_tex_coords.at(halfedge_tex_idx.at(v_idx));
-                    ++v_idx;
-                    ++h_fit;
-                } while (h_fit != h_end);
+                    if (!(
+                        vertices[0].idx() > mesh.n_vertices() - 1 ||
+                        vertices[1].idx() > mesh.n_vertices() - 1 ||
+                        vertices[2].idx() > mesh.n_vertices() - 1
+                    ))
+                        f = mesh.add_face(vertices);
+                }
+                catch (const TopologyException& e)
+                {
+                    std::cerr << e.what();
+                }
+
+                // add texture coordinates
+                if (with_tex_coord && f.is_valid())
+                {
+                    auto h_fit = mesh.halfedges(f);
+                    auto h_end = h_fit;
+                    unsigned v_idx = 0;
+                    do
+                    {
+                        tex_coords[*h_fit] =
+                            all_tex_coords.at(halfedge_tex_idx.at(v_idx));
+                        ++v_idx;
+                        ++h_fit;
+                    } while (h_fit != h_end);
+                }
             }
         }
         // clear line
